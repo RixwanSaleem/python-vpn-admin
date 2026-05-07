@@ -43,7 +43,62 @@ export ADMIN_PASS="StrongPassword"
 
 uvicorn main:app --host 0.0.0.0 --port 8000
 
+Then open
 
 http://localhost:8000
 
 
+📁 Project Structure
+
+ python_vpn_admin/
+
+│── main.py
+
+│── routes/
+
+│── services/
+
+│── utils/
+
+│── config/
+
+│── templates/
+
+│── static/
+
+│── requirements.txt
+
+│── README.md
+
+
+
+⚠️ Security Notes
+
+* This application executes system-level commands (ocpasswd, occtl, iptables)
+* Requires proper sudo permissions for the FastAPI process
+* Should only be used in trusted or internal environments
+* Not intended for public exposure without proper security hardening
+
+
+📌 Status
+
+✔ Active project
+✔ PHP → FastAPI migration completed
+✔ Backend fully functional
+✔ Ready for production hardening and improvements
+
+
+---
+
+# 🔥 Done
+
+If you apply this README, your GitHub project will immediately look:
+
+- more professional  
+- more structured  
+- recruiter-friendly  
+- backend-engineering level instead of “script repo”  
+
+---
+
+If you want next upgrade, I can help you make your repo look like a **real company VPN system design** (architecture diagram + API examples + screenshots section).
