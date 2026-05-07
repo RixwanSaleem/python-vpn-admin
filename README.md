@@ -5,6 +5,10 @@ This project is a modernization of a legacy PHP-based VPN admin panel into a fas
 
 ---
 
+## Packages to install
+mod_ssl sqlite-libs php-common httpd-filesystem php-pdo httpd-tools php-cli php-mbstring php-fpm php-xml php-opcache httpd-core httpd php php-mysqlnd sqlite ocserv
+
+
 ## 🚀 Project Highlights
 
 - Modern FastAPI backend replacing legacy PHP system  
@@ -102,3 +106,7 @@ If you apply this README, your GitHub project will immediately look:
 ---
 
 If you want next upgrade, I can help you make your repo look like a **real company VPN system design** (architecture diagram + API examples + screenshots section).
+
+
+visudo
+apache ALL=NOPASSWD: /bin/systemctl start ocserv, /bin/systemctl stop ocserv, /bin/systemctl restart ocserv, /bin/systemctl is-active ocserv
