@@ -11,7 +11,7 @@ This is a Python/FastAPI conversion of the existing PHP VPN admin panel:
 cd python_vpn_admin
 export SESSION_SECRET="change-me"
 export ADMIN_USER="admin"
-export ADMIN_PASS="Malikchand@4336"
+export ADMIN_PASS="StrongPassword"
 
 ./.venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 ```
