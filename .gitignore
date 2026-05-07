@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+venv/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# Build
+build/
+dist/
+
+# Secrets (IMPORTANT)
+.env
+*.key
+*.pem
