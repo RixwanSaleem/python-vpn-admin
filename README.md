@@ -84,8 +84,8 @@ EnvironmentFile=/etc/vpn-panel.env
 ExecStart=/opt/vpn-panel/python_vpn_admin/venv/bin/uvicorn main:app \
     --host 0.0.0.0 \
     --port 8443 \
-    --ssl-certfile /etc/letsencrypt/live/alfasolution.org/fullchain.pem \
-    --ssl-keyfile /etc/letsencrypt/live/alfasolution.org/privkey.pem
+    --ssl-certfile /etc/letsencrypt/live/YOUR-DOMAIN/fullchain.pem \
+    --ssl-keyfile /etc/letsencrypt/live/YOUR-DOMAIN/privkey.pem
 Restart=always
 User=root
 Environment="PYTHONUNBUFFERED=1"
