@@ -5,127 +5,48 @@ This project is a modernization of a legacy PHP-based VPN admin panel into a fas
 
 ---
 
-## Packages to install
-mod_ssl sqlite-libs php-common httpd-filesystem php-pdo httpd-tools php-cli php-mbstring php-fpm php-xml php-opcache httpd-core httpd php php-mysqlnd sqlite ocserv certbot python3-certbot-apache  bind-utils openssl -y
-
-## if you download project to local machine 
-
-scp vpn_admin_backup.tar.gz root@aYour-Server-Ip:/root/
-
-## once project files uploaded run below to place  
-
-mkdir -p /opt/vpn-panel && tar -xzvf /root/vpn_admin_backup.tar.gz -C /opt/vpn-panel/
-
-## delete unnecessary files
-find /opt/vpn-panel/ -name "._*" -delete
-
-## remove old env
-rm -rf /opt/vpn-panel/python_vpn_admin/.venv
-
-
-## enter to env
-cd /opt/vpn-panel/python_vpn_admin
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-
-## 🚀 Project Highlights
-
-- Modern FastAPI backend replacing legacy PHP system  
-- REST API for VPN user and configuration management  
-- Secure session-based authentication system  
-- Integration with Linux services (`ocserv`, `iptables`, `systemctl`)  
-- Environment-based configuration for flexibility and security  
-- Compatible with existing PHP frontend routes (`index.php`, `dashboard.php`)  
-
----
-
-## 🎯 Purpose
-
-This project was built to modernize a legacy VPN administration system by replacing PHP-based endpoints with a scalable FastAPI backend while maintaining compatibility with existing frontend workflows and system tools.
-
----
-
-## 🧰 Tech Stack
-
-- Python 3.x  
-- FastAPI  
-- Uvicorn  
-- Linux system tools (`occtl`, `ocpasswd`, `iptables`)  
-- SQLite / system-based DB (depending on configuration)  
-
----
-
-## 🚀 Run Locally
-
+## 📦 System Dependencies
+Install the required system packages for Rocky Linux:
 ```bash
-cd python_vpn_admin
+sudo dnf install ocserv sqlite certbot python3-certbot-apache bind-utils openssl gcc python3-devel -y
+```
 
-export SESSION_SECRET="change-me"
-export ADMIN_USER="admin"
-export ADMIN_PASS="StrongPassword"
+## 📂 Deployment Steps
 
-uvicorn main:app --host 0.0.0.0 --port 8000
+### 1. Upload and Extract
+If you have the project on a local machine, upload it:
+```bash
+scp vpn_admin_backup.tar.gz root@YOUR_SERVER_IP:/root/
+```
 
-Then open
+Extract to the production directory:
+```bash
+mkdir -p /opt/vpn-panel
+tar -xzvf /root/vpn_admin_backup.tar.gz -C /opt/vpn-panel/
+# Clean up MacOS metadata files if present
+find /opt/vpn-panel/ -name "._*" -delete
+```
 
-http://localhost:8000
+### 2. Python Environment Setup
+```bash
+cd /opt/vpn-panel/python_vpn_admin
+rm -rf venv  # Remove old environment if exists
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
+### 3. Configuration Setup
+Create the environment file:
+`nano /etc/vpn-panel.env`
 
-📁 Project Structure
-
- python_vpn_admin/
-
-│── main.py
-
-│── routes/
-
-│── services/
-
-│── utils/
-
-│── config/
-
-│── templates/
-
-│── static/
-
-│── requirements.txt
-
-│── README.md
-
-
-
-⚠️ Security Notes
-
-* This application executes system-level commands (ocpasswd, occtl, iptables)
-* Requires proper sudo permissions for the FastAPI process
-* Should only be used in trusted or internal environments
-* Not intended for public exposure without proper security hardening
-
-
-📌 Status
-
-✔ Active project
-✔ PHP → FastAPI migration completed
-✔ Backend fully functional
-✔ Ready for production hardening and improvements
-
-## Firewall Rules
-
-firewall-cmd --permanent --add-port=8443/tcp
-firewall-cmd --reload
-
-## Create Services Environment 
-nano /etc/vpn-panel.env
-
-
+```ini
 SESSION_SECRET=CHANGE_THIS_LONG_RANDOM_SECRET
 ADMIN_USER=admin
-ADMIN_PASS=PASS_FOR_PANEL
+ADMIN_PASS=YOUR_STRONG_PASSWORD
 
-DB_PATH=/opt/vpn_admin_python/python_vpn_admin/var/vpn.db
+DB_PATH=/opt/vpn-panel/python_vpn_admin/var/vpn.db
 OCPASSWD_PATH=/usr/bin/ocpasswd
 OC_PASSWD_DB=/var/lib/ocserv/ocpasswd
 OCCTL_PATH=/usr/bin/occtl
@@ -133,89 +54,79 @@ SYSTEMCTL_PATH=/usr/bin/systemctl
 OCSERV_SERVICE=ocserv
 USER_CONFIG_DIR=/etc/ocserv/config-per-user
 IPTABLES_BIN=/usr/sbin/iptables
-SUDO_BIN=
-#OCCTL_SOCKET_FILE=/var/run/occtl.socket
 OCCTL_SOCKET_FILE=/var/run/occtl.socket
+```
 
+### 4. Firewall & Permissions
+```bash
+# Open Panel Port
+firewall-cmd --permanent --add-port=8443/tcp
+firewall-cmd --reload
 
-## Create Services File
+# Create Per-User Config Directory (For Static IPs)
+mkdir -p /etc/ocserv/config-per-user
+chown -R nobody:nobody /etc/ocserv/config-per-user
+chmod 755 /etc/ocserv/config-per-user
+```
 
-cat <<EOF > /etc/systemd/system/vpn-panel.service
+### 5. Systemd Service Integration
+Create the service file:
+`nano /etc/systemd/system/vpn-panel.service`
+
+```ini
 [Unit]
 Description=VPN Python Panel
 After=network.target
 
 [Service]
 WorkingDirectory=/opt/vpn-panel/python_vpn_admin
-# Ensure this matches where your .env file is actually located
 EnvironmentFile=/etc/vpn-panel.env
 ExecStart=/opt/vpn-panel/python_vpn_admin/venv/bin/uvicorn main:app \
     --host 0.0.0.0 \
     --port 8443 \
-    --ssl-certfile /etc/letsencrypt/live/DOMAIN/fullchain.pem \
-    --ssl-keyfile /etc/letsencrypt/live/DOMAIN/privkey.pem
+    --ssl-certfile /etc/letsencrypt/live/alfasolution.org/fullchain.pem \
+    --ssl-keyfile /etc/letsencrypt/live/alfasolution.org/privkey.pem
 Restart=always
 User=root
 Environment="PYTHONUNBUFFERED=1"
 
 [Install]
 WantedBy=multi-user.target
+```
 
-EOF
-
-# Reload and Restart
-systemctl daemon-reload
-systemctl restart vpn-panel
-
-# Show Status
-systemctl status vpn-panel
-
-
-
-## Make Sure of ocserv.conf
-
- cat /etc/ocserv/ocserv.conf
+### 6. OCserv Configuration (`/etc/ocserv/ocserv.conf`)
+Ensure these lines are set correctly to enable the panel's features:
+```ini
+# User database
 auth = "plain[/var/lib/ocserv/ocpasswd]"
-tcp-port = 443
-udp-port = 443
-run-as-user = nobody
-run-as-group = nobody
 
-socket-file = /run/ocserv.sock
-
-server-cert = /etc/letsencrypt/live/Your-Domain/fullchain.pem
-server-key = /etc/letsencrypt/live/Your-Domain/privkey.pem
-
-max-clients = 100
-max-same-clients = 2
-
-try-mtu-discovery = true
-dns = 8.8.8.8
-dns = 1.1.1.1
-
-ipv4-network = 10.10.10.0
-ipv4-netmask = 255.255.255.0
-
-#route = default
-route = 0.0.0.0/1
-route = 128.0.0.0/1
-no-route = Your server ip/32
-
-tunnel-all-dns = false
-
-cisco-client-compat = true
-
-config-per-user = /etc/ocserv/config-per-user/
-# config-per-group = /etc/ocserv/config-per-group/
-
-device = vpns
+# Socket for Live Status (Fixed Path)
 use-occtl = true
 occtl-socket-file = /var/run/occtl.socket
 
+# Per-User Config for Static IPs
+config-per-user = /etc/ocserv/config-per-user/
+```
 
-
-## Finally
-
-systemctl restart ocserv
+### 7. Start Services
+```bash
 systemctl daemon-reload
+systemctl enable ocserv vpn-panel
+systemctl restart ocserv
 systemctl restart vpn-panel
+
+# Fix socket permissions (Run after ocserv start)
+chmod 666 /var/run/occtl.socket
+```
+
+---
+
+## 🎯 Tech Stack
+- **FastAPI**: Backend Framework
+- **Uvicorn**: ASGI Server
+- **OCserv**: OpenConnect VPN Server
+- **SQLite**: Database for user management
+
+## ⚠️ Security Notes
+- Running as **root** is required to execute `ocpasswd` and `iptables`.
+- Ensure SELinux is configured or disabled to allow the panel to read the SSL certs and the occtl socket.
