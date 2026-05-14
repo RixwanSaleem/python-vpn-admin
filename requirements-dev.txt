@@ -1,0 +1,6 @@
+pytest
+httpx
+fastapi
+starlette
+itsdangerous
+python-multipart
